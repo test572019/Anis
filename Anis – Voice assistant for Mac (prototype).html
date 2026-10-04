@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anis – Voice control for your Mac</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF1F0;--panel:#FFFFFF;--ink:#13222B;--mute:#5C6B73;--line:#D9E1E0;--teal:#0E7C7B;--teal-soft:#DCEFEE;--amber:#D98E1F;--ok:#2B9A66;--bad:#C2493D;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A20;--panel:#16252D;--ink:#E7EFEE;--mute:#93A5AC;--line:#27393F;--teal:#3FC1BE;--teal-soft:#173B3C;--amber:#F0B04A;--ok:#4CC58B;--bad:#EE7B6F}}
+:root[data-theme="dark"]{--bg:#0F1A20;--panel:#16252D;--ink:#E7EFEE;--mute:#93A5AC;--line:#27393F;--teal:#3FC1BE;--teal-soft:#173B3C;--amber:#F0B04A;--ok:#4CC58B;--bad:#EE7B6F}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;min-height:100vh}
+.app{display:grid;grid-template-columns:230px 1fr 300px;gap:16px;max-width:1280px;margin:0 auto;padding:16px;min-height:100vh}
+aside,main,.side{background:var(--panel);border:1px solid var(--line);border-radius:18px}
+aside{padding:20px;display:flex;flex-direction:column;gap:18px}
+.who{display:flex;gap:12px;align-items:center}
+.avatar{width:48px;height:48px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:700;font-size:20px}
+.who b{display:block;font-size:17px}.who span{font-size:13px;color:var(--mute)}
+nav a{display:block;padding:10px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:500;font-size:15px}
+nav a.on{background:var(--teal-soft);color:var(--teal)}
+.perm{margin-top:auto;font-size:13px;color:var(--mute);border-top:1px solid var(--line);padding-top:14px}
+.perm i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+main{padding:28px;display:flex;flex-direction:column;gap:20px;min-width:0}
+h1{font-size:26px;margin:0;font-weight:700;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:2px 0 0}
+.stage{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.mic{width:96px;height:96px;border-radius:50%;border:0;background:var(--teal);color:#fff;cursor:pointer;display:grid;place-items:center;flex:none;transition:transform .15s,background .2s;position:relative}
+.mic:hover{transform:scale(1.04)}.mic:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.mic.listen{background:var(--amber);animation:pulse 1.2s infinite}
+.mic.busy{background:var(--ink)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(217,142,31,.5)}100%{box-shadow:0 0 0 24px rgba(217,142,31,0)}}
+@media (prefers-reduced-motion:reduce){.mic.listen{animation:none}}
+.mic svg{width:38px;height:38px}
+.say{flex:1;min-width:220px}
+.state{font-size:14px;color:var(--mute);font-weight:500}
+.heard{font-size:22px;font-weight:600;min-height:34px;margin-top:2px}
+.reply{margin-top:6px;color:var(--teal);font-weight:500;min-height:24px}
+.bar{display:flex;gap:8px}
+.bar input{flex:1;padding:12px 14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;font:inherit}
+.bar button,.btn{padding:12px 18px;border:0;border-radius:12px;background:var(--ink);color:var(--panel);font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.go{background:var(--teal);color:#fff}
+.prog{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--bg)}
+.prog h2,.side h2{font-size:15px;margin:0 0 12px;font-weight:700}
+.empty{color:var(--mute);margin:0}
+.meter{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.meter div{height:100%;width:0;background:var(--teal);transition:width .5s}
+.step{display:flex;gap:12px;align-items:flex-start;padding:7px 0;color:var(--mute)}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:12px;color:#fff;margin-top:1px}
+.step.now{color:var(--ink);font-weight:600}.step.now .dot{border-color:var(--amber);border-top-color:transparent;animation:spin .8s linear infinite}
+.step.done{color:var(--ink)}.step.done .dot{background:var(--ok);border-color:var(--ok)}
+.step.stop .dot{border-color:var(--bad);background:var(--bad)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.confirm{margin-top:14px;border:1px solid var(--amber);border-radius:12px;padding:14px;background:var(--panel)}
+.confirm p{margin:0 0 4px}.confirm .meta{color:var(--mute);font-size:14px}
+.confirm .row{display:flex;gap:8px;margin-top:12px}
+.side{padding:20px;display:flex;flex-direction:column;gap:20px}
+.chips{display:flex;flex-direction:column;gap:8px}
+.chip{text-align:left;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;cursor:pointer}
+.chip:hover{border-color:var(--teal)}.chip small{display:block;color:var(--mute)}
+.hist{list-style:none;margin:0;padding:0;font-size:14px}
+.hist li{padding:8px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+.hist em{font-style:normal;color:var(--ok);font-weight:600;white-space:nowrap}.hist em.x{color:var(--bad)}
+@media(max-width:980px){.app{grid-template-columns:1fr}aside{flex-direction:row;flex-wrap:wrap;align-items:center}.perm{margin:0;border:0;padding:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="who"><div class="avatar">A</div><div><b>Anis</b><span>Your Mac assistant</span></div></div>
+  <nav><a class="on" href="#">Talk to Anis</a><a href="#">History</a><a href="#">Contacts &amp; email</a><a href="#">Settings</a></nav>
+  <div class="perm"><i></i>Connected to this Mac<br>Microphone, Automation, Contacts allowed</div>
+</aside>
+
+<main>
+  <div><h1 id="hello">Good day, how can I help?</h1><p class="sub">Press the mic and speak, or type a command.</p></div>
+  <div class="stage">
+    <button class="mic" id="mic" aria-label="Talk to Anis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    <div class="say"><div class="state" id="state">Ready</div><div class="heard" id="heard">“Open Safari”</div><div class="reply" id="reply"></div></div>
+  </div>
+  <form class="bar" id="form"><input id="txt" placeholder="Or type: open Notes, play music, send a message to Sara…" aria-label="Type a command"><button>Send</button></form>
+  <section class="prog" aria-live="polite"><h2>Progress</h2><p class="empty" id="empty">Nothing running. Try one of the examples on the right.</p><div id="run" hidden><div class="meter"><div id="m"></div></div><div id="steps"></div><div id="cf"></div></div></section>
+</main>
+
+<div class="side">
+  <div><h2>Try saying</h2><div class="chips" id="chips"></div></div>
+  <div><h2>Recent</h2><ul class="hist" id="hist"><li><span>Opened Notes</span><em>Done</em></li></ul></div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const CMDS=[
+ {k:['safari','open app','notes','open'],say:'Open Safari',label:'Open an app',sub:'“Open Safari”',steps:['Understand the request','Find Safari','Launch Safari','Bring it to the front'],reply:'Safari is open.',hist:'Opened Safari'},
+ {k:['music','play'],say:'Play some jazz',label:'Play music',sub:'“Play some jazz”',steps:['Understand the request','Open Music','Search for jazz','Start playing'],reply:'Playing jazz in Music.',hist:'Played jazz'},
+ {k:['file','document','report'],say:'Open my report in Documents',label:'Open a file',sub:'“Open my report”',steps:['Understand the request','Search Documents','Found “Report.pdf”','Open with Preview'],reply:'Report.pdf is open.',hist:'Opened Report.pdf'},
+ {k:['message','text','sara'],say:'Send a message to Sara: I’m on my way',label:'Send a message',sub:'“Message Sara”',steps:['Understand the request','Find Sara in Contacts','Write the message','Waiting for your OK','Send with Messages'],confirmAt:3,confirm:{t:'Message to Sara',b:'I’m on my way'},reply:'Message sent to Sara.',hist:'Messaged Sara'},
+ {k:['email','mail','mohamed'],say:'Send an email to Mohamed about tomorrow’s meeting',label:'Send an email',sub:'“Email Mohamed”',steps:['Understand the request','Find Mohamed in Contacts','Write the draft','Waiting for your OK','Send with Mail'],confirmAt:3,confirm:{t:'Email to Mohamed · Tomorrow’s meeting',b:'Hello Mohamed, can we move tomorrow’s meeting to 10:00? Thanks.'},reply:'Email sent to Mohamed.',hist:'Emailed Mohamed'}
+];
+const h=new Date().getHours();$('hello').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', how can I help?';
+CMDS.forEach(c=>{const b=document.createElement('button');b.className='chip';b.innerHTML=c.label+'<small>'+c.sub+'</small>';b.onclick=()=>listen(c);$('chips').append(b)});
+let busy=false,tok=0;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function match(t){t=t.toLowerCase();return CMDS.find(c=>c.k.some(k=>t.includes(k)))}
+async function listen(c){if(busy)return;$('mic').className='mic listen';$('state').textContent='Listening…';$('reply').textContent='';$('heard').textContent='';
+ for(const w of c.say.split(' ')){$('heard').textContent+=(w+' ');await wait(120)}
+ await wait(300);run(c)}
+async function run(c){busy=true;const my=++tok;$('mic').className='mic busy';$('state').textContent='Working on it…';$('heard').textContent='“'+c.say+'”';
+ $('empty').hidden=true;$('run').hidden=false;$('cf').innerHTML='';
+ $('steps').innerHTML=c.steps.map((s,i)=>'<div class="step" id="s'+i+'"><span class="dot"></span><span>'+s+'</span></div>').join('');
+ for(let i=0;i<c.steps.length;i++){
+  $('s'+i).className='step now';$('m').style.width=(i/c.steps.length*100)+'%';
+  if(i===c.confirmAt){$('state').textContent='Waiting for you';const ok=await ask(c.confirm);
+   if(!ok){$('s'+i).className='step stop';$('s'+i).querySelector('.dot').textContent='×';$('state').textContent='Cancelled';$('reply').textContent='Okay, nothing was sent.';add(c.hist.replace(/^(\w+)/,'Cancelled: $1'),false);return end()}}
+  else await wait(750);
+  $('s'+i).className='step done';$('s'+i).querySelector('.dot').textContent='✓'}
+ $('m').style.width='100%';$('state').textContent='Done';$('reply').textContent=c.reply;add(c.hist,true);end()}
+function ask(d){return new Promise(res=>{$('cf').innerHTML='<div class="confirm"><p><b>'+d.t+'</b></p><p class="meta">'+d.b+'</p><div class="row"><button class="btn go" id="y">Send it</button><button class="btn ghost" id="n">Cancel</button></div></div>';
+ $('y').focus();$('y').onclick=()=>{$('cf').innerHTML='';res(true)};$('n').onclick=()=>{$('cf').innerHTML='';res(false)}})}
+function end(){busy=false;$('mic').className='mic'}
+function add(t,ok){const li=document.createElement('li');li.innerHTML='<span>'+t+'</span><em class="'+(ok?'':'x')+'">'+(ok?'Done':'Stopped')+'</em>';$('hist').prepend(li)}
+$('mic').onclick=()=>listen(CMDS[Math.floor(Math.random()*CMDS.length)]);
+$('form').onsubmit=e=>{e.preventDefault();const v=$('txt').value.trim();if(!v||busy)return;const c=match(v);
+ if(!c){$('heard').textContent='“'+v+'”';$('state').textContent='Not understood';$('reply').textContent='I can open apps, play music, open files, send messages and emails. Try one of the examples.';return}
+ $('txt').value='';run({...c,say:v})};
+</script>
+</body>
+</html>
